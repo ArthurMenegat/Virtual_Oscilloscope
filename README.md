@@ -1,2 +1,4 @@
-# Virtual_Oscilloscope
+# Virtual Oscilloscope
 Virtual Oscilloscope Project.
+
+Windows exclusive.
