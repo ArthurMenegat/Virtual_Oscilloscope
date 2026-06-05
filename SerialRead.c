@@ -5,7 +5,7 @@
 */
 
 /*
-    Desativando as funções conflitantes do windows.h (ex: Rectangle, CloseWindow)
+    Disabling conflicting functions in windows.h (e.g., Rectangle, CloseWindow)
 */
 #if defined(_WIN32)           
     #define NOGDI  
@@ -97,7 +97,6 @@ int ReadCOMPort(SerialPort_t* COMPort, void* buffer, DWORD bytesToRead, DWORD* b
 {    
     COMMTIMEOUTS cto = {0}; 
 
-    // Maximum time interval (in milliseconds) between each package sent. If the value exceeds, the reading is finished
     cto.ReadIntervalTimeout = MAXDWORD; 
     cto.ReadTotalTimeoutMultiplier = 0;    
     cto.ReadTotalTimeoutConstant = 0;
