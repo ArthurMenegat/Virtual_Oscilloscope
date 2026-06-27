@@ -1,12 +1,14 @@
 /*
-    Plotter Header File
-    Note: This document contains the plotter functions declarations 
-    By: Arthur
+    WaveGenerator Header File.
+    Note: This document contains the wave functions declarations. 
+    By: Arthur.
 */
 
-#ifndef PLOTTER_H
-#define PLOTTER_H
+#ifndef WAVE_GENERATOR_H
+#define WAVE_GENERATOR_H
 
 void DrawGrid2D(int width, int height);
+void AddValueToWave(int signal_value);
+void DrawWave();
 
 #endif

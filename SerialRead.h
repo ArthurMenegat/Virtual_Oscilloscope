@@ -1,7 +1,7 @@
 /*
-    SerialRead Header File
-    Note: This document contains the serial readings functions declarations 
-    By: Arthur
+    SerialRead Header File.
+    Note: This document contains the serial readings functions declarations. 
+    By: Arthur.
 */
 
 #ifndef SERIAL_READ_H
@@ -36,6 +36,7 @@ typedef struct
 int InitCOMPort(SerialPort_t* COMPort, char* PortName); // Inicialize the selected COM port
 int ConfigCOMPort(SerialPort_t* COMPort, int baudrate, int bytesize, int parity, int stopbits); // Configure the selected COM port
 int ReadCOMPort(SerialPort_t* COMPort, void* buffer, DWORD bytesToRead, DWORD* bytesRead); // Read data in the selected COM Port
-void CloseCOMPort(SerialPort_t* COMPort);
-
+void CloseCOMPort(SerialPort_t* COMPort); // Close the selected COM Port
+                                         // Note: Always call this function at the end of the program
+                                        // or the port could stay blocked for further use
 #endif

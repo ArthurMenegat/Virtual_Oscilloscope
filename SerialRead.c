@@ -1,11 +1,11 @@
 /*
-*    SerialRead Source File
-*    Note: This document contains the serial readings functions implementations  
-*    By: Arthur
+*    SerialRead Source File.
+*    Note: This document contains the serial readings functions implementations.
+*    By: Arthur.
 */
 
 /*
-    Disabling conflicting functions in windows.h (e.g., Rectangle, CloseWindow)
+    Disabling conflicting functions in windows.h
 */
 #if defined(_WIN32)           
     #define NOGDI  
@@ -94,7 +94,7 @@ int ConfigCOMPort(SerialPort_t* COMPort, int baudrate, int bytesize, int parity,
 }
 
 int ReadCOMPort(SerialPort_t* COMPort, void* buffer, DWORD bytesToRead, DWORD* bytesRead) 
-{    
+{       
     COMMTIMEOUTS cto = {0}; 
 
     cto.ReadIntervalTimeout = MAXDWORD; 
