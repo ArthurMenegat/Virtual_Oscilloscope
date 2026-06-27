@@ -3,4 +3,4 @@ Virtual Oscilloscope Project.
 
 Windows exclusive.
 
-<img width="173" height="341" alt="Oscilloscope drawio" src="https://github.com/user-attachments/assets/7c2891cd-a65f-4f7c-9aa3-b6a4e00620ef" />
+<img width="173" height="341" alt="Oscilloscope drawio (1)" src="https://github.com/user-attachments/assets/757fb326-1c47-4c54-b383-79941e2f1c52" />
