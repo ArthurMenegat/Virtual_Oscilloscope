@@ -23,20 +23,34 @@
     #undef PlaySound
 #endif
 
+#define BUFFER_SIZE 256
+
 typedef struct
 {
-    char* PortName;
-    HANDLE hSerial; // Windows COM handle (struct)
+    const char* PortName;
+    HANDLE hSerial; // Windows COM handle (struct).
     int Baudrate;
     int Bytesize;
     int Parity;
     int Stopbits;
 }SerialPort_t;
 
-int InitCOMPort(SerialPort_t* COMPort, char* PortName); // Inicialize the selected COM port
-int ConfigCOMPort(SerialPort_t* COMPort, int baudrate, int bytesize, int parity, int stopbits); // Configure the selected COM port
-int ReadCOMPort(SerialPort_t* COMPort, void* buffer, DWORD bytesToRead, DWORD* bytesRead); // Read data in the selected COM Port
-void CloseCOMPort(SerialPort_t* COMPort); // Close the selected COM Port
+typedef struct
+{
+    DWORD bytes_read; // Number of bytes read. 
+    char buffer[BUFFER_SIZE]; 
+    char display_data[BUFFER_SIZE]; 
+    char rx_buffer[BUFFER_SIZE];       
+    int bytesToRead;
+    int rx_index;
+}SerialRead_t;
+
+int InitComPort(SerialPort_t* com_port, char* my_port); // Inicialize the selected COM port.
+int ConfigComPort(SerialPort_t* com_port, int baudrate, int bytesize, int parity, int stopbits); // Configure the selected COM port.
+int ReadComPort(SerialPort_t* com_port, SerialRead_t* serial); // Read data in the selected COM Port.
+void CloseComPort(SerialPort_t* com_port); // Close the selected COM Port.
                                          // Note: Always call this function at the end of the program
-                                        // or the port could stay blocked for further use
+                                        // or the port could stay blocked for further use.
+void CheckNewLineCharacter(SerialRead_t* serial); // Checks for new line character.
+                                                 // Note: Always put a '\n' at the end of the package before sending it to your PC.
 #endif

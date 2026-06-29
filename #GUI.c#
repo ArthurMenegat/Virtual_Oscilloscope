@@ -1,0 +1,130 @@
+/*
+    GUI Source File.
+    Note: This document contains the Graphical User Interface functions implementations. 
+    By: Arthur.
+*/
+
+#if defined(_WIN32)           
+    #define NOGDI  
+    #define NOUSER
+    #define WIN32_LEAN_AND_MEAN  
+#endif
+
+#include <windows.h>         
+
+#if defined(_WIN32)
+    #undef CloseWindow
+    #undef ShowCursor
+    #undef DrawText
+    #undef Rectangle
+    #undef PlaySound
+#endif
+
+// Screen defines
+#define WINDOW_WIDTH 960
+#define WINDOW_HEIGHT 540
+#define WINDOW_TITLE "Virtual Oscilloscope"
+
+// Terminal button defines
+#define T_BUTTON_WIDTH 150
+#define T_BUTTON_HEIGHT 50
+#define T_BUTTON_Y_POS 25
+#define T_BUTTON_COLOR GREEN
+
+#define TERMINAL_TEXT_COLOR DARKGREEN
+
+#include "GUI.h"
+#include "raylib.h"
+
+bool is_fullscreen = false;
+int width = 0;
+int height = 0;
+
+void GetScreenResolution()
+{
+    int monitor = GetCurrentMonitor();
+    
+    width = GetMonitorWidth(monitor);
+    height = GetMonitorHeight(monitor);
+}
+
+void DrawGrid2D()
+{ 
+    // Horizontal Lines.
+    for(int i = height; i > 0; i -= 90)
+    {
+        DrawLine(0, height - i, width, height - i, GRAY);
+    }
+    
+    // Vertical Lines.
+    for(int i = 1; i < width; i += 96)
+    {
+        DrawLine(96 + i, 0, 96 + i, height, GRAY);
+    }
+}
+
+bool ToggleButton(Rectangle button, bool* toggle_state)
+{
+    Vector2 mouse_pos = GetMousePosition();
+    bool is_hovered = CheckCollisionPointRec(mouse_pos, button);
+    
+    if(is_hovered)   
+    {
+        DrawRectangleRec(button, LIGHTGRAY);
+           
+        if(IsMouseButtonReleased(MOUSE_LEFT_BUTTON))
+        {
+            *toggle_state = !(*toggle_state); // Assign the inverse value in the toggleState address       
+        }
+    }
+    else
+    {
+        DrawRectangleRec(button, T_BUTTON_COLOR);
+    }
+   
+    return *toggle_state;
+}
+
+void DrawButtonText(Rectangle button, const char* text, Color text_color)
+{
+    int font_size = 20;
+    int text_length = MeasureText(text, font_size);
+    
+    // Calculate the text position relative to the button and text dimensions 
+    int text_X_Pos = button.x + (button.width - text_length) / 2;
+    int text_Y_Pos = button.y + (button.height - font_size) / 2;
+   
+    DrawText(text, text_X_Pos, text_Y_Pos, font_size, text_color);       
+}
+
+void TurnFullscreen(Rectangle button)
+{   
+    if(IsKeyPressed(KEY_F))
+    {
+        is_fullscreen = !is_fullscreen;
+            
+        if(is_fullscreen)
+        {        
+            SetWindowSize(width, height);
+                                
+            ToggleFullscreen();
+                
+            button.x = 20;
+        }
+        else
+        {
+            ToggleFullscreen();
+            SetWindowSize(WINDOW_WIDTH, WINDOW_HEIGHT);
+                
+            button.x = 20;
+        }
+    }
+}
+
+void DrawTerminalText(DWORD bytes_read, char* display_data, int period)
+{
+    DrawText("------Serial Terminal------", 1500, 120, 20, TERMINAL_TEXT_COLOR);
+    DrawText(TextFormat("Number of Bytes Read: %lu", bytes_read), 1500, 150, 20, TERMINAL_TEXT_COLOR);
+    DrawText(TextFormat("Data received: %s", display_data), 1500, 200, 20, TERMINAL_TEXT_COLOR);
+    DrawText(TextFormat("Period: %u", period), 1500, 250, 20, TERMINAL_TEXT_COLOR);
+}

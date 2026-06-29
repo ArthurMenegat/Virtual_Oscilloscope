@@ -25,14 +25,15 @@
 
 #include "raylib.h"
 #include "SerialRead.h"
+#include "WaveGenerator.h"
 #include <stdio.h>
 
-int InitCOMPort(SerialPort_t* COMPort, char* myPort)
+int InitComPort(SerialPort_t* com_port, char* my_port)
 {  
-    COMPort -> PortName = myPort;
+    com_port -> PortName = my_port;
     
-    COMPort -> hSerial = CreateFile(
-                                    COMPort -> PortName,
+    com_port -> hSerial = CreateFile(
+                                    com_port -> PortName,
                                     GENERIC_READ | GENERIC_WRITE,
                                     0, 
                                     NULL, 
@@ -41,49 +42,64 @@ int InitCOMPort(SerialPort_t* COMPort, char* myPort)
                                     NULL
                                     );
     
-    if(COMPort -> hSerial == INVALID_HANDLE_VALUE)
+    if(com_port -> hSerial == INVALID_HANDLE_VALUE)
     {     
         return 1;
+    }
+    
+    COMMTIMEOUTS cto = {0}; 
+
+    cto.ReadIntervalTimeout = MAXDWORD; 
+    cto.ReadTotalTimeoutMultiplier = 0;    
+    cto.ReadTotalTimeoutConstant = 0;
+
+    SetCommTimeouts(com_port -> hSerial, &cto); // Set the previous configurations
+    
+    if (!SetCommTimeouts(com_port -> hSerial, &cto)) 
+    {
+        CloseHandle(com_port -> hSerial); 
+        
+        return 2; 
     }
     
     return 0; 
 }
 
-int ConfigCOMPort(SerialPort_t* COMPort, int baudrate, int bytesize, int parity, int stopbits)
+int ConfigComPort(SerialPort_t* com_port, int baudrate, int bytesize, int parity, int stopbits)
 {
-    DCB dcb; // DCB (Device Control Block) struct
+    DCB dcb; // DCB (Device Control Block) struct.
     BOOL fSuccess;
     
-    COMPort -> Baudrate = baudrate;
-    COMPort -> Bytesize = bytesize;
-    COMPort -> Parity = parity;
-    COMPort -> Stopbits = stopbits;
+    com_port -> Baudrate = baudrate;
+    com_port -> Bytesize = bytesize;
+    com_port -> Parity = parity;
+    com_port -> Stopbits = stopbits;
     
-    // Inicialize the windows DCB struct
+    // Inicialize the windows DCB struct.
     SecureZeroMemory(&dcb, sizeof(DCB));
     dcb.DCBlength = sizeof(DCB);
     
-    fSuccess = GetCommState(COMPort -> hSerial, &dcb);
+    fSuccess = GetCommState(com_port -> hSerial, &dcb);
     
-    if(!fSuccess) // Error handler
+    if(!fSuccess) // Error handler.
     {
         return 2;
     }
     
-    // Set configs and the COM state
-    dcb.BaudRate = COMPort -> Baudrate;
-    dcb.ByteSize = (BYTE)COMPort -> Bytesize;    // 
-    dcb.Parity = (BYTE)COMPort -> Parity;       // DCB struct expects a BYTE
-    dcb.StopBits = (BYTE)COMPort -> Stopbits;  //
+    // Set configs and the COM state.
+    dcb.BaudRate = com_port -> Baudrate;
+    dcb.ByteSize = (BYTE)com_port -> Bytesize;    // 
+    dcb.Parity = (BYTE)com_port -> Parity;       // DCB struct expects a BYTE.
+    dcb.StopBits = (BYTE)com_port -> Stopbits;  //
     
-    fSuccess = SetCommState(COMPort -> hSerial, &dcb);
+    fSuccess = SetCommState(com_port -> hSerial, &dcb);
     
     if(!fSuccess)
     {
         return 3;
     }
     
-    fSuccess = GetCommState(COMPort -> hSerial, &dcb); // Get the config again
+    fSuccess = GetCommState(com_port -> hSerial, &dcb); // Get the config again.
     
     if(!fSuccess)
     {
@@ -93,21 +109,13 @@ int ConfigCOMPort(SerialPort_t* COMPort, int baudrate, int bytesize, int parity,
     return 0;
 }
 
-int ReadCOMPort(SerialPort_t* COMPort, void* buffer, DWORD bytesToRead, DWORD* bytesRead) 
+int ReadComPort(SerialPort_t* com_port, SerialRead_t* serial) 
 {       
-    COMMTIMEOUTS cto = {0}; 
-
-    cto.ReadIntervalTimeout = MAXDWORD; 
-    cto.ReadTotalTimeoutMultiplier = 0;    
-    cto.ReadTotalTimeoutConstant = 0;
-
-    SetCommTimeouts(COMPort -> hSerial, &cto); // Set the previous configurations
-
     BOOL success = ReadFile(
-                            COMPort -> hSerial,
-                            buffer,
-                            bytesToRead,
-                            bytesRead,
+                            com_port -> hSerial,
+                            serial -> buffer,
+                            serial -> bytesToRead,
+                            &(serial -> bytes_read),
                             NULL
                             );
     
@@ -119,7 +127,39 @@ int ReadCOMPort(SerialPort_t* COMPort, void* buffer, DWORD bytesToRead, DWORD* b
     return 0;
 }
 
-void CloseCOMPort(SerialPort_t* COMPort)
+void CloseComPort(SerialPort_t* com_port)
 {
-    CloseHandle(COMPort -> hSerial);
+    CloseHandle(com_port -> hSerial);
+}
+
+void CheckNewLineCharacter(SerialRead_t* serial)
+{ 
+    if(serial -> bytes_read > 0)
+    {
+        for(DWORD i = 0; i < serial -> bytes_read; ++i)
+        {
+            char caracter = serial -> buffer[i];
+            
+            if(caracter == '\n')
+            {
+                serial -> rx_buffer[serial -> rx_index] = '\0';
+                
+                strncpy(serial -> display_data, serial -> rx_buffer, sizeof(serial -> display_data) - 1);
+                serial -> display_data[sizeof(serial -> display_data) - 1] = '\0'; // Ensures null termination.  
+                    
+                int signal_value = atoi(serial -> rx_buffer);  // Converts data type.
+                AddValueToWave(signal_value);
+                    
+                serial -> rx_index = 0;
+                memset(serial -> rx_buffer, 0, sizeof(serial -> rx_buffer));
+            }
+            else if(caracter != '\r') 
+            {
+                if(serial -> rx_index < sizeof(serial -> rx_buffer) - 1)
+                {
+                    serial -> rx_buffer[serial -> rx_index++] = caracter;
+                }
+            }
+        }                               
+    }              
 }
