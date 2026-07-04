@@ -20,91 +20,72 @@
     #undef PlaySound
 #endif
 
-#include "GUI.h"
+#include "gui.h"
 #include "raylib.h"
 #include "raygui.h"
 
 // Screen defines
 #define WINDOW_WIDTH 960
 #define WINDOW_HEIGHT 540
-#define WINDOW_TITLE "Virtual Oscilloscope"
-
-// Terminal button defines
-#define T_BUTTON_WIDTH 150
-#define T_BUTTON_HEIGHT 50
-#define T_BUTTON_Y_POS 25
-#define T_BUTTON_COLOR GREEN
 
 #define TERMINAL_TEXT_COLOR DARKGREEN
 
-#define TAB_WIDTH 300
-#define TAB_HEIGHT 1080
-
-bool is_fullscreen = false;
-bool terminal_toggle = false;
-int width = 0;
-int height = 0;
-
-bool edit_text_box = false;
-
-Rectangle terminal_button = {20, T_BUTTON_Y_POS, T_BUTTON_WIDTH, T_BUTTON_HEIGHT}; 
-Rectangle tab = {1920 - TAB_WIDTH, 0, TAB_WIDTH, TAB_HEIGHT};  
-
-void GetScreenResolution()
-{
-    int monitor = GetCurrentMonitor();
-    
-    width = GetMonitorWidth(monitor);
-    height = GetMonitorHeight(monitor);
+void GetScreenResolution(screen_t* screen)
+{    
+    screen -> monitor = GetCurrentMonitor();
+    screen -> height = GetMonitorHeight(screen -> monitor);
+    screen -> width = GetMonitorWidth(screen -> monitor);
 }
 
-void DrawGrid2D()
+void DrawGrid2D(screen_t* screen)
 { 
     // Horizontal Lines.
-    for(int i = height; i > 0; i -= 90)
+    for(int i = screen -> height; i > 0; i -= 90)
     {
-        DrawLine(0, height - i, width, height - i, GRAY);
+        DrawLine(0, screen -> height - i, screen -> width, screen -> height - i, GRAY);
     }
     
     // Vertical Lines.
-    for(int i = 1; i < width; i += 96)
+    for(int i = 1; i < screen -> width; i += 96)
     {
-        DrawLine(96 + i, 0, 96 + i, height, GRAY);
+        DrawLine(96 + i, 90, 96 + i, screen -> height, GRAY);
     }
 }
 
-void TurnFullscreen()
-{   
-    is_fullscreen = !is_fullscreen;
-    
-    if(is_fullscreen)
+void TurnFullscreen(app_state_t* app_state, screen_t* screen)
+{       
+    if(app_state -> is_fullscreen)
     {        
-        SetWindowSize(width, height);
+        SetWindowSize(screen -> width, screen -> height);
        
         ToggleFullscreen();
-        
-        //terminal_button.x = 20;
     }
     else
     {
         ToggleFullscreen();
         SetWindowSize(WINDOW_WIDTH, WINDOW_HEIGHT);
-     
-        //terminal_button.x = 20;
     }
 }
 
-void DrawTerminalText(SerialRead_t* serial)
+void DrawTerminal(Rectangle* my_button, serial_read_t* my_serial)
 {
-    GuiToggle(terminal_button, "Terminal", &terminal_toggle);
+    DrawRectangle(1500, 0, 420, 1080, BLACK);
+    DrawText("------Serial Terminal------", 1570, 0, 20, TERMINAL_TEXT_COLOR);
+    DrawText(TextFormat("Number of Bytes Read: %lu", my_serial -> bytes_read), 1500, 150, 20, TERMINAL_TEXT_COLOR);
+    DrawText(TextFormat("Data received: %s\n", my_serial -> display_data), 1500, 200, 20, TERMINAL_TEXT_COLOR);
+}
+
+void ShowWaveInfo(wave_t* my_wave)
+{
+    DrawText(TextFormat("Period: %u", my_wave -> period), 20, 90, 20, TERMINAL_TEXT_COLOR);
+}
+
+void ShowBar(bar_t* my_bar)
+{
+    Rectangle bar = {bar.x = my_bar -> x,
+                     bar.y = my_bar -> y,
+                     bar.width = my_bar -> width,
+                     bar.height = my_bar -> height};
     
-    if(terminal_toggle)
-    {        
-        GuiWindowBox(tab, "Terminal");         
-    }
-    
-    //DrawText("------Serial Terminal------", 1500, 120, 20, TERMINAL_TEXT_COLOR);
-    //DrawText(TextFormat("Number of Bytes Read: %lu", bytes_read), 1500, 150, 20, TERMINAL_TEXT_COLOR);
-    //DrawText(TextFormat("Data received: %s", display_data), 1500, 200, 20, TERMINAL_TEXT_COLOR);
-    //DrawText(TextFormat("Period: %u", period), 1500, 250, 20, TERMINAL_TEXT_COLOR);
+    DrawRectangleRec(bar, my_bar -> color);
 }

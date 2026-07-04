@@ -9,53 +9,53 @@
 
 #include "raygui.h"
 
-#include "SerialRead.h"
-#include "WaveGenerator.h"
-#include "GUI.h"
+#include "serialread.h"
+#include "wave.h"
+#include "gui.h"
+#include "appstate.h"
 
 #define WINDOW_WIDTH 960
 #define WINDOW_HEIGHT 540
 #define WINDOW_TITLE "Virtual Oscilloscope"
 
-int main(void)
-{    
-    SerialPort_t my_com = {0};
-    SerialRead_t my_serial = {0};
+#define MENU_BAR_X_POS 0
+#define MENU_BAR_Y_POS 0
+#define MENU_BAR_WIDTH 1920
+#define MENU_BAR_HEIGHT 90
+#define MENU_BAR_COLOR DARKGRAY
 
-    my_serial.bytesToRead = 255;
+#define MAX_CHANNELS 3
+
+int main(void)
+{
+    app_state_t app_state = {0};
+    screen_t screen = {0};
+    serial_port_t my_com[MAX_CHANNELS] = {0}; // Port instance.
+    serial_read_t my_serial[MAX_CHANNELS] = {0}; // Serial reading instance.
+    wave_t wave[MAX_CHANNELS] = {0}; 
+
+    bar_t my_menu_bar = {.x = MENU_BAR_X_POS, 
+                         .y = MENU_BAR_Y_POS,
+                         .width = MENU_BAR_WIDTH,
+                         .height = MENU_BAR_HEIGHT,
+                         .color = MENU_BAR_COLOR};   
 
     InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_TITLE);
-    SetTargetFPS(60);
+    SetTargetFPS(60); 
 
-    InitComPort(&my_com, "COM7");
-    ConfigComPort(&my_com, 115200, 8, 0, 1);   
-  
-    GetScreenResolution();
-  
+    InitApplication(&app_state, &screen, my_com, wave, my_serial);
+
     while(!WindowShouldClose())
-    {                
-        if(IsKeyPressed(KEY_F11))
-        {
-            TurnFullscreen();                        
-        }
+    {          
+        UpdateHardwareAndState(&app_state, my_com, my_serial, wave, &screen);
+        RenderGraphics(&app_state, my_serial, wave, &screen, my_com);
         
-        ReadComPort(&my_com, &my_serial);
-        CheckNewLineCharacter(&my_serial);
-        
-        BeginDrawing();
-       
-        ClearBackground(BLACK);
-        
-        DrawGrid2D();
-        
-        DrawWave();   
-        
-        DrawTerminalText(&my_serial);               
-
-        EndDrawing();
+        // CalculateSignalPeriod(&wave[1]);
+ 
+        ShowWaveInfo(&wave[0]);
     }  
     
-    CloseComPort(&my_com);
+    CloseApplication(&app_state, my_com);
     
     CloseWindow();
     

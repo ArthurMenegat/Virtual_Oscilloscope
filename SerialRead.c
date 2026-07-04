@@ -24,11 +24,11 @@
 #endif
 
 #include "raylib.h"
-#include "SerialRead.h"
-#include "WaveGenerator.h"
+#include "serialread.h"
+#include "wave.h"
 #include <stdio.h>
 
-int InitComPort(SerialPort_t* com_port, char* my_port)
+int InitComPort(serial_port_t* com_port, const char* my_port)
 {  
     com_port -> PortName = my_port;
     
@@ -65,7 +65,7 @@ int InitComPort(SerialPort_t* com_port, char* my_port)
     return 0; 
 }
 
-int ConfigComPort(SerialPort_t* com_port, int baudrate, int bytesize, int parity, int stopbits)
+int ConfigComPort(serial_port_t* com_port, int baudrate, int bytesize, int parity, int stopbits)
 {
     DCB dcb; // DCB (Device Control Block) struct.
     BOOL fSuccess;
@@ -109,7 +109,7 @@ int ConfigComPort(SerialPort_t* com_port, int baudrate, int bytesize, int parity
     return 0;
 }
 
-int ReadComPort(SerialPort_t* com_port, SerialRead_t* serial) 
+int ReadComPort(serial_port_t* com_port, serial_read_t* serial) 
 {       
     BOOL success = ReadFile(
                             com_port -> hSerial,
@@ -127,12 +127,12 @@ int ReadComPort(SerialPort_t* com_port, SerialRead_t* serial)
     return 0;
 }
 
-void CloseComPort(SerialPort_t* com_port)
+void CloseComPort(serial_port_t* com_port)
 {
     CloseHandle(com_port -> hSerial);
 }
 
-void CheckNewLineCharacter(SerialRead_t* serial)
+void CheckNewLineCharacter(serial_read_t* serial, wave_t* my_wave)
 { 
     if(serial -> bytes_read > 0)
     {
@@ -148,7 +148,9 @@ void CheckNewLineCharacter(SerialRead_t* serial)
                 serial -> display_data[sizeof(serial -> display_data) - 1] = '\0'; // Ensures null termination.  
                     
                 int signal_value = atoi(serial -> rx_buffer);  // Converts data type.
-                AddValueToWave(signal_value);
+                my_wave -> signal_value = signal_value;
+                    
+                AddValueToWave(my_wave);
                     
                 serial -> rx_index = 0;
                 memset(serial -> rx_buffer, 0, sizeof(serial -> rx_buffer));

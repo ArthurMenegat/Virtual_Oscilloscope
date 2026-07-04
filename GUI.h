@@ -24,11 +24,30 @@
 #endif
 
 #include "raylib.h"
-#include "SerialRead.h"
+#include "serialread.h"
+#include "appstate.h"
 
-void GetScreenResolution();
-void DrawGrid2D(); // Draw a 2D grid on the screen.
-void TurnFullscreen(); // Resizes screen.
-void DrawTerminalText(SerialRead_t* serial); // Draw terminal text. 
+typedef struct screen_t
+{
+    int width;
+    int height;
+    int monitor;
+}screen_t;
+
+typedef struct 
+{
+    int x; 
+    int y;
+    int width;
+    int height;
+    Color color;
+}bar_t;
+
+void GetScreenResolution(screen_t* screen);
+void DrawGrid2D(screen_t* screen); // Draw a 2D grid on the screen.
+void TurnFullscreen(app_state_t* app_state, screen_t* screen); // Resizes screen. 
+void DrawTerminal(Rectangle* my_button, serial_read_t* my_serial);
+void ShowWaveInfo(wave_t* my_wave);
+void ShowBar(bar_t* my_bar);
 
 #endif

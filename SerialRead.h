@@ -23,6 +23,8 @@
     #undef PlaySound
 #endif
 
+#include "wave.h"
+
 #define BUFFER_SIZE 256
 
 typedef struct
@@ -33,7 +35,7 @@ typedef struct
     int Bytesize;
     int Parity;
     int Stopbits;
-}SerialPort_t;
+}serial_port_t;
 
 typedef struct
 {
@@ -43,14 +45,14 @@ typedef struct
     char rx_buffer[BUFFER_SIZE];       
     int bytesToRead;
     int rx_index;
-}SerialRead_t;
+}serial_read_t;
 
-int InitComPort(SerialPort_t* com_port, char* my_port); // Inicialize the selected COM port.
-int ConfigComPort(SerialPort_t* com_port, int baudrate, int bytesize, int parity, int stopbits); // Configure the selected COM port.
-int ReadComPort(SerialPort_t* com_port, SerialRead_t* serial); // Read data in the selected COM Port.
-void CloseComPort(SerialPort_t* com_port); // Close the selected COM Port.
+int InitComPort(serial_port_t* com_port, const char* my_port); // Inicialize the selected COM port.
+int ConfigComPort(serial_port_t* com_port, int baudrate, int bytesize, int parity, int stopbits); // Configure the selected COM port.
+int ReadComPort(serial_port_t* com_port, serial_read_t* serial); // Read data in the selected COM Port.
+void CloseComPort(serial_port_t* com_port); // Close the selected COM Port.
                                          // Note: Always call this function at the end of the program
                                         // or the port could stay blocked for further use.
-void CheckNewLineCharacter(SerialRead_t* serial); // Checks for new line character.
+void CheckNewLineCharacter(serial_read_t* serial, wave_t* my_wave); // Checks for new line character.
                                                  // Note: Always put a '\n' at the end of the package before sending it to your PC.
 #endif
